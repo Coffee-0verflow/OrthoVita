@@ -5,37 +5,43 @@ export const detectSquat = (landmarks, prevState) => {
   const leftHip = getLandmark(landmarks, POSE_LANDMARKS.LEFT_HIP);
   const leftKnee = getLandmark(landmarks, POSE_LANDMARKS.LEFT_KNEE);
   const leftAnkle = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ANKLE);
-  const leftShoulder = getLandmark(landmarks, POSE_LANDMARKS.LEFT_SHOULDER);
+  const rightHip = getLandmark(landmarks, POSE_LANDMARKS.RIGHT_HIP);
+  const rightKnee = getLandmark(landmarks, POSE_LANDMARKS.RIGHT_KNEE);
+  const rightAnkle = getLandmark(landmarks, POSE_LANDMARKS.RIGHT_ANKLE);
 
-  const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
-  const isDown = kneeAngle >= 80 && kneeAngle <= 100; // Ideal squat range
+  const leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
+  const rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle);
+  const kneeAngle = Math.min(leftKneeAngle, rightKneeAngle);
+
+  const isDown = kneeAngle < 100;
   const isUp = kneeAngle > 160;
 
-  let feedback = 'Stand with feet shoulder-width apart';
+  let feedback = 'Stand ready';
   let reps = prevState?.reps || 0;
   let stage = prevState?.stage || 'up';
   let status = 'neutral';
 
+  // Only count rep if proper sequence: up -> down -> up
   if (isDown && stage === 'up') {
     stage = 'down';
-    feedback = '✓ Perfect squat! Now stand up';
+    feedback = '✓ Good depth! Now stand up';
     status = 'correct';
   } else if (isUp && stage === 'down') {
     stage = 'up';
     reps++;
-    feedback = '✓ Great rep! Go down again';
+    feedback = '✓ Rep complete! Go down again';
     status = 'correct';
-  } else if (stage === 'down' && kneeAngle > 100 && kneeAngle < 160) {
-    feedback = '△ Bend more (80°-100° ideal)';
+  } else if (stage === 'down' && kneeAngle >= 100 && kneeAngle < 160) {
+    feedback = '△ Go lower (below 100°)';
     status = 'adjust';
   } else if (stage === 'down' && kneeAngle < 80) {
-    feedback = '✗ Too low - risk of injury';
+    feedback = '✗ Too deep - risk of injury';
     status = 'incorrect';
   } else if (stage === 'up') {
-    feedback = 'Squat down to 90°';
+    feedback = 'Squat down';
   }
 
-  const accuracy = isDown || isUp ? 100 : Math.max(0, 100 - Math.abs(kneeAngle - 90));
+  const accuracy = (isDown && kneeAngle >= 80 && kneeAngle <= 100) || isUp ? 100 : Math.max(0, 100 - Math.abs(kneeAngle - 90));
 
   return { reps, stage, feedback, accuracy: Math.round(accuracy), angle: Math.round(kneeAngle), status };
 };
@@ -47,28 +53,27 @@ export const detectBicepCurl = (landmarks, prevState) => {
   const leftWrist = getLandmark(landmarks, POSE_LANDMARKS.LEFT_WRIST);
 
   const elbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
-  const isCurled = elbowAngle < 70;
-  const isExtended = elbowAngle > 150;
+  const isCurled = elbowAngle < 60;
+  const isExtended = elbowAngle > 160;
 
-  let feedback = 'Keep elbow stable';
+  let feedback = 'Arm at side';
   let reps = prevState?.reps || 0;
   let stage = prevState?.stage || 'down';
 
   if (isCurled && stage === 'down') {
     stage = 'up';
-    feedback = 'Good curl! Now lower';
+    feedback = 'Good curl! Lower down';
   } else if (isExtended && stage === 'up') {
     stage = 'down';
     reps++;
-    feedback = 'Perfect! Curl again';
-  } else if (stage === 'down' && elbowAngle < 150) {
+    feedback = 'Rep complete! Curl again';
+  } else if (stage === 'down' && elbowAngle < 160) {
     feedback = 'Extend arm fully';
-  } else if (stage === 'up' && elbowAngle > 70) {
+  } else if (stage === 'up' && elbowAngle > 60) {
     feedback = 'Curl up more';
   }
 
   const accuracy = isCurled || isExtended ? 100 : 70;
-
   return { reps, stage, feedback, accuracy, angle: Math.round(elbowAngle) };
 };
 
@@ -79,13 +84,13 @@ export const detectKneeRaise = (landmarks, prevState) => {
   const leftAnkle = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ANKLE);
 
   const hipAngle = calculateAngle(
-    { x: leftHip.x, y: leftHip.y - 0.2 },
+    { x: leftHip.x, y: leftHip.y - 0.3 },
     leftHip,
     leftKnee
   );
 
-  const isRaised = hipAngle < 100;
-  const isDown = hipAngle > 160;
+  const isRaised = hipAngle < 90;
+  const isDown = hipAngle > 170;
 
   let feedback = 'Stand straight';
   let reps = prevState?.reps || 0;
@@ -93,11 +98,11 @@ export const detectKneeRaise = (landmarks, prevState) => {
 
   if (isRaised && stage === 'down') {
     stage = 'up';
-    feedback = 'Good! Lower your leg';
+    feedback = 'Good! Lower leg';
   } else if (isDown && stage === 'up') {
     stage = 'down';
     reps++;
-    feedback = 'Nice! Raise again';
+    feedback = 'Rep done! Raise again';
   } else if (stage === 'down') {
     feedback = 'Raise your knee';
   } else if (stage === 'up') {
@@ -105,7 +110,6 @@ export const detectKneeRaise = (landmarks, prevState) => {
   }
 
   const accuracy = isRaised || isDown ? 100 : 75;
-
   return { reps, stage, feedback, accuracy, angle: Math.round(hipAngle) };
 };
 
@@ -116,8 +120,8 @@ export const detectShoulderPress = (landmarks, prevState) => {
   const leftWrist = getLandmark(landmarks, POSE_LANDMARKS.LEFT_WRIST);
 
   const elbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
-  const isPressed = elbowAngle > 160 && leftWrist.y < leftShoulder.y;
-  const isDown = elbowAngle < 100;
+  const isPressed = elbowAngle > 165 && leftWrist.y < leftShoulder.y;
+  const isDown = elbowAngle < 90;
 
   let feedback = 'Start position';
   let reps = prevState?.reps || 0;
@@ -129,7 +133,7 @@ export const detectShoulderPress = (landmarks, prevState) => {
   } else if (isDown && stage === 'up') {
     stage = 'down';
     reps++;
-    feedback = 'Perfect! Press again';
+    feedback = 'Rep complete! Press again';
   } else if (stage === 'down') {
     feedback = 'Press arms up';
   } else if (stage === 'up') {
@@ -137,7 +141,6 @@ export const detectShoulderPress = (landmarks, prevState) => {
   }
 
   const accuracy = isPressed || isDown ? 100 : 80;
-
   return { reps, stage, feedback, accuracy, angle: Math.round(elbowAngle) };
 };
 
@@ -148,8 +151,8 @@ export const detectLateralRaise = (landmarks, prevState) => {
   const leftHip = getLandmark(landmarks, POSE_LANDMARKS.LEFT_HIP);
 
   const shoulderAngle = calculateAngle(leftHip, leftShoulder, leftElbow);
-  const isRaised = shoulderAngle > 70 && shoulderAngle < 110;
-  const isDown = shoulderAngle < 30;
+  const isRaised = shoulderAngle > 75 && shoulderAngle < 105;
+  const isDown = shoulderAngle < 25;
 
   let feedback = 'Arms at sides';
   let reps = prevState?.reps || 0;
@@ -157,11 +160,11 @@ export const detectLateralRaise = (landmarks, prevState) => {
 
   if (isRaised && stage === 'down') {
     stage = 'up';
-    feedback = 'Hold! Now lower slowly';
+    feedback = 'Hold! Lower slowly';
   } else if (isDown && stage === 'up') {
     stage = 'down';
     reps++;
-    feedback = 'Good! Raise again';
+    feedback = 'Rep done! Raise again';
   }
 
   const accuracy = isRaised || isDown ? 100 : 75;
@@ -175,8 +178,8 @@ export const detectLunge = (landmarks, prevState) => {
   const leftAnkle = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ANKLE);
 
   const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
-  const isLunged = kneeAngle < 110;
-  const isStanding = kneeAngle > 160;
+  const isLunged = kneeAngle < 100;
+  const isStanding = kneeAngle > 165;
 
   let feedback = 'Stand ready';
   let reps = prevState?.reps || 0;
@@ -188,7 +191,7 @@ export const detectLunge = (landmarks, prevState) => {
   } else if (isStanding && stage === 'down') {
     stage = 'up';
     reps++;
-    feedback = 'Perfect! Lunge again';
+    feedback = 'Rep complete! Lunge again';
   }
 
   const accuracy = isLunged || isStanding ? 100 : 80;
@@ -198,7 +201,6 @@ export const detectLunge = (landmarks, prevState) => {
 // Exercise detector for Arm Circles
 export const detectArmCircle = (landmarks, prevState) => {
   const leftShoulder = getLandmark(landmarks, POSE_LANDMARKS.LEFT_SHOULDER);
-  const leftElbow = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ELBOW);
   const leftWrist = getLandmark(landmarks, POSE_LANDMARKS.LEFT_WRIST);
 
   const armAngle = calculateAngle(
@@ -207,38 +209,45 @@ export const detectArmCircle = (landmarks, prevState) => {
     leftWrist
   );
 
-  const isExtended = armAngle > 150;
+  const isTop = leftWrist.y < leftShoulder.y - 0.15;
+  const isBottom = leftWrist.y > leftShoulder.y + 0.15;
+
   let reps = prevState?.reps || 0;
   let stage = prevState?.stage || 'start';
+  let lastPosition = prevState?.lastPosition || 'none';
 
-  if (isExtended && leftWrist.y < leftShoulder.y) {
-    if (stage !== 'top') {
-      stage = 'top';
+  if (isTop && lastPosition !== 'top') {
+    lastPosition = 'top';
+    if (stage === 'bottom') {
       reps++;
+      stage = 'top';
+    } else {
+      stage = 'top';
     }
-  } else if (leftWrist.y > leftShoulder.y) {
+  } else if (isBottom && lastPosition !== 'bottom') {
+    lastPosition = 'bottom';
     stage = 'bottom';
   }
 
   const feedback = 'Make slow circles';
-  const accuracy = isExtended ? 100 : 85;
-  return { reps, stage, feedback, accuracy, angle: Math.round(armAngle) };
+  const accuracy = 85;
+  return { reps, stage, feedback, accuracy, angle: Math.round(armAngle), lastPosition };
 };
 
 // Exercise detector for Calf Raises
 export const detectCalfRaise = (landmarks, prevState) => {
-  const leftKnee = getLandmark(landmarks, POSE_LANDMARKS.LEFT_KNEE);
   const leftAnkle = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ANKLE);
-  const leftHip = getLandmark(landmarks, POSE_LANDMARKS.LEFT_HIP);
+  const rightAnkle = getLandmark(landmarks, POSE_LANDMARKS.RIGHT_ANKLE);
 
-  const hipToAnkle = Math.abs(leftHip.y - leftAnkle.y);
-  const isRaised = leftAnkle.y < prevState?.baselineY - 0.02;
-  const isDown = leftAnkle.y >= prevState?.baselineY - 0.01;
+  const avgAnkleY = (leftAnkle.y + rightAnkle.y) / 2;
+  const baselineY = prevState?.baselineY || avgAnkleY;
+  
+  const isRaised = avgAnkleY < baselineY - 0.03;
+  const isDown = avgAnkleY >= baselineY - 0.01;
 
-  let feedback = 'Stand on toes';
+  let feedback = 'Rise on toes';
   let reps = prevState?.reps || 0;
   let stage = prevState?.stage || 'down';
-  let baselineY = prevState?.baselineY || leftAnkle.y;
 
   if (isRaised && stage === 'down') {
     stage = 'up';
@@ -246,7 +255,7 @@ export const detectCalfRaise = (landmarks, prevState) => {
   } else if (isDown && stage === 'up') {
     stage = 'down';
     reps++;
-    feedback = 'Great! Raise again';
+    feedback = 'Rep done! Raise again';
   }
 
   const accuracy = 90;

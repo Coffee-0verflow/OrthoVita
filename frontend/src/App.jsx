@@ -12,20 +12,23 @@ import { PreExerciseBriefing } from './components/PreExerciseBriefing';
 import { NutritionAdvice } from './components/NutritionAdvice';
 import { useStore } from './store/useStore';
 import { EXERCISES } from './utils/exerciseDetectors';
+import { getRecommendedExercises } from './utils/injuryMapping';
 
 function App() {
   const { user, setUser, rehabDay, confirmedInjury, setInjury, currentExercise, isActive } = useStore();
   const [flow, setFlow] = useState('landing');
   const [showBriefing, setShowBriefing] = useState(false);
   const [showNutrition, setShowNutrition] = useState(false);
+  const [recommendedExercises, setRecommendedExercises] = useState([]);
 
   useEffect(() => {
     if (!user) {
       setFlow('landing');
-    } else if (!confirmedInjury) {
+    } else if (confirmedInjury === undefined) {
       setFlow('injury');
     } else {
       setFlow('dashboard');
+      setRecommendedExercises(getRecommendedExercises(confirmedInjury));
     }
   }, [user, confirmedInjury]);
 
@@ -39,6 +42,11 @@ function App() {
     setFlow('dashboard');
   };
 
+  const handleSkipInjury = () => {
+    setInjury(null);
+    setFlow('dashboard');
+  };
+
   if (flow === 'landing') {
     return <LandingPage onAuth={handleAuth} />;
   }
@@ -48,7 +56,7 @@ function App() {
   }
 
   if (flow === 'injury') {
-    return <InjuryConfirmation onConfirm={handleInjuryConfirm} />;
+    return <InjuryConfirmation onConfirm={handleInjuryConfirm} onSkip={handleSkipInjury} />;
   }
 
   return (
@@ -84,7 +92,9 @@ function App() {
             </button>
             <div className="text-right">
               <p className="text-sm font-semibold text-[#e8f0ff]">👋 {user.name}</p>
-              <p className="text-xs text-[#4a5e80]">{confirmedInjury}</p>
+              {confirmedInjury && (
+                <p className="text-xs text-[#4a5e80]">{confirmedInjury}</p>
+              )}
             </div>
             <button
               onClick={() => { setUser(null); setInjury(null); }}
@@ -95,6 +105,21 @@ function App() {
             </button>
           </div>
         </div>
+
+        {/* Injury-based recommendation banner */}
+        {confirmedInjury && (
+          <div className="bg-[#00e5ff]/10 border border-[#00e5ff]/30 rounded-xl p-4 mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">💡</span>
+              <span className="text-sm font-bold text-[#00e5ff]" style={{ fontFamily: "'Syne', sans-serif" }}>
+                Personalized Recommendations
+              </span>
+            </div>
+            <p className="text-sm text-[#c8d8f0]">
+              Based on your {confirmedInjury}, we've selected exercises that are safe and beneficial for your recovery.
+            </p>
+          </div>
+        )}
 
         {/* ── Setup Guide ── */}
         <div className="bg-[#0d1526] border border-[#00e5ff]/10 border-l-2 border-l-[#00e5ff] p-4 mb-6 rounded-xl">
@@ -107,7 +132,7 @@ function App() {
         </div>
 
         {/* ── Exercise Selection ── */}
-        <ExerciseSelector />
+        <ExerciseSelector recommendedExercises={recommendedExercises} />
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Webcam Feed */}
