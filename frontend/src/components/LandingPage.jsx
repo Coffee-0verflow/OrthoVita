@@ -47,9 +47,12 @@ export function LandingPage({ onAuth }) {
       {/* ── NAVBAR ── */}
       <nav className="sticky top-0 z-50 flex items-center justify-between px-8 h-16
                       bg-[#0d1117]/90 backdrop-blur-md border-b border-white/[0.06]">
-        <span className="text-lg font-bold tracking-tight">
-          Ortho<span className="text-cyan-400">Vita</span>
-        </span>
+        <div className="flex items-center gap-3">
+          <img src="/Untitled design.png" alt="OrthoVita Logo" className="h-10 w-auto object-contain rounded-md" />
+          <span className="text-3xl font-bold tracking-tight">
+            Ortho<span className="text-cyan-400">Vita</span>
+          </span>
+        </div>
         <div className="flex items-center gap-3">
           <button
             onClick={openLogin}
@@ -229,9 +232,12 @@ export function LandingPage({ onAuth }) {
       {/* ── FOOTER ── */}
       <footer className="border-t border-white/[0.06] px-8 py-6 flex items-center
                          justify-between flex-wrap gap-4">
-        <span className="text-sm font-semibold">
-          Ortho<span className="text-cyan-400">Vita</span>
-        </span>
+        <div className="flex items-center gap-3">
+          <img src="/Untitled design.png" alt="OrthoVita Logo" className="h-6 w-auto object-contain rounded-md" />
+          <span className="text-sm font-semibold">
+            Ortho<span className="text-cyan-400">Vita</span>
+          </span>
+        </div>
         <span className="text-gray-600 text-xs">
           MediaPipe · React + Vite · Web Speech API · Zero Backend
         </span>
