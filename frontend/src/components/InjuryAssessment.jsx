@@ -1,12 +1,12 @@
 export const InjuryAssessment = ({ onComplete, onSkip }) => {
   const injuries = [
-    { id: 'knee', label: '🦵 Knee Pain', exercises: ['squat', 'kneeRaise', 'calfRaise'] },
-    { id: 'shoulder', label: '💪 Shoulder Pain', exercises: ['shoulderPress', 'lateralRaise', 'armCircle'] },
-    { id: 'back', label: '🧍 Back Pain', exercises: ['squat', 'kneeRaise', 'calfRaise'] },
-    { id: 'neck', label: '🧑 Neck Pain', exercises: ['neckTilt', 'armCircle'] },
-    { id: 'wrist', label: '✋ Wrist Pain', exercises: ['wristRotation', 'armCircle'] },
-    { id: 'elbow', label: '💪 Elbow Pain', exercises: ['bicepCurl', 'lateralRaise'] },
-    { id: 'ankle', label: '🦶 Ankle Pain', exercises: ['calfRaise', 'kneeRaise'] },
+    { id: 'knee', label: '🦵🏻 Knee Pain', exercises: ['squat', 'kneeRaise', 'calfRaise'] },
+    { id: 'shoulder', label: '💪🏻 Shoulder Pain', exercises: ['shoulderPress', 'lateralRaise', 'armCircle'] },
+    { id: 'back', label: '🧍🏻 Back Pain', exercises: ['squat', 'kneeRaise', 'calfRaise'] },
+    { id: 'neck', label: '🧑🏻 Neck Pain', exercises: ['neckTilt', 'armCircle'] },
+    { id: 'wrist', label: '✋🏻 Wrist Pain', exercises: ['wristRotation', 'armCircle'] },
+    { id: 'elbow', label: '💪🏻 Elbow Pain', exercises: ['bicepCurl', 'lateralRaise'] },
+    { id: 'ankle', label: '🦶🏻 Ankle Pain', exercises: ['calfRaise', 'kneeRaise'] },
   ];
 
   const handleSelect = (injury) => {
