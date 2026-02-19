@@ -4,6 +4,7 @@ import { ExerciseSelector } from './components/ExerciseSelector';
 import { StatsPanel } from './components/StatsPanel';
 import { ControlButtons } from './components/ControlButtons';
 import { SessionSummary } from './components/SessionSummary';
+import { ExerciseHistory } from './components/ExerciseHistory';
 import { LandingPage } from './components/LandingPage';
 import { GeminiChatbot } from './components/GeminiChatbot';
 import { AIGreeting } from './components/AIGreeting';
@@ -23,6 +24,7 @@ function App() {
   const [showNutrition, setShowNutrition] = useState(false);
   const [recommendedExercises, setRecommendedExercises] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -95,6 +97,13 @@ function App() {
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowHistory(true)}
+              className="text-sm border border-[#1c2e50] text-[#00e5ff] px-4 py-2 rounded-xl
+                hover:border-[#00e5ff]/50 hover:bg-[#00e5ff]/5 transition-all duration-200"
+            >
+              📊 History
+            </button>
             <button
               onClick={() => setShowNutrition(true)}
               className="text-sm border border-[#1c2e50] text-[#00e5ff] px-4 py-2 rounded-xl
@@ -183,6 +192,10 @@ function App() {
           onClose={() => setShowProfile(false)}
           onSave={handleSaveProfile}
         />
+      )}
+
+      {showHistory && (
+        <ExerciseHistory onClose={() => setShowHistory(false)} />
       )}
     </div>
   );
