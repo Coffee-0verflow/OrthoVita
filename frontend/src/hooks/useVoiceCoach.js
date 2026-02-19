@@ -16,14 +16,14 @@ export const useVoiceCoach = () => {
     if (translatedText === lastMessage.current && !priority) return;
     
     const now = Date.now();
-    const cooldown = priority ? 3000 : 8000;
+    const cooldown = priority ? 5000 : 20000;
 
-    if (!priority && (now - lastSpeakTime.current < cooldown || isSpeaking.current)) {
+    if (now - lastSpeakTime.current < cooldown || isSpeaking.current) {
       return;
     }
 
     if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
+      return;
     }
 
     const utterance = new SpeechSynthesisUtterance(translatedText);
@@ -72,7 +72,9 @@ export const useVoiceCoach = () => {
     isSpeaking.current = false;
   };
 
-  return { speak, enabled, language, toggle, toggleLanguage, stop };
+  const checkIsSpeaking = () => isSpeaking.current;
+
+  return { speak, enabled, language, toggle, toggleLanguage, stop, isSpeaking: checkIsSpeaking };
 };
 
 // Hindi translations for common phrases

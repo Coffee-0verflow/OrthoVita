@@ -18,10 +18,11 @@ export const WebcamFeed = () => {
   const [safetyStatus, setSafetyStatus] = useState(null);
 
   const { currentExercise, isActive, updateStats, stopSession, reps } = useStore();
-  const { speak, enabled: voiceEnabled, language, toggle: toggleVoice, toggleLanguage } = useVoiceCoach();
+  const { speak, enabled: voiceEnabled, language, toggle: toggleVoice, toggleLanguage, isSpeaking } = useVoiceCoach();
   const lastRepSpoken = useRef(0);
   const prevAngle = useRef(0);
-  const feedbackCount = useRef(0);
+  const lastFeedbackMessage = useRef('');
+  const lastFeedbackTime = useRef(0);
 
   // ── Pose detection callback ────────────────────────────────────────────────
   const onPoseResults = useCallback((landmarks) => {
@@ -52,11 +53,16 @@ export const WebcamFeed = () => {
         const safety = validateSafety(currentExercise, result.angle, prevAngle.current);
         setSafetyStatus(safety);
         
-        // Voice feedback with priority for risk
-        if (safety.voice && feedbackCount.current % 3 === 0) {
-          speak(safety.voice, safety.priority || false);
+        // Voice feedback with heavy throttling (20 seconds minimum)
+        const now = Date.now();
+        if (safety.voice && 
+            (safety.voice !== lastFeedbackMessage.current || now - lastFeedbackTime.current > 20000)) {
+          if (!isSpeaking()) {
+            speak(safety.voice, safety.priority || false);
+            lastFeedbackMessage.current = safety.voice;
+            lastFeedbackTime.current = now;
+          }
         }
-        feedbackCount.current++;
         prevAngle.current = result.angle;
       }
 
@@ -163,6 +169,16 @@ export const WebcamFeed = () => {
       }
     };
   }, []);
+
+  // ── Reset exercise state when exercise changes ─────────────────────────────
+  useEffect(() => {
+    exerciseStateRef.current = {};
+    lastRepSpoken.current = 0;
+    prevAngle.current = 0;
+    lastFeedbackMessage.current = '';
+    lastFeedbackTime.current = 0;
+    setSafetyStatus(null);
+  }, [currentExercise]);
 
   // ── Start/stop pose detection when session state changes ───────────────────
   useEffect(() => {
