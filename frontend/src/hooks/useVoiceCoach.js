@@ -10,7 +10,7 @@ export const useVoiceCoach = () => {
   const speak = useCallback((text, priority = false) => {
     if (!enabled || !text) return;
     
-    // Translate to Hindi if needed
+    // Translate to Hindi if needed BEFORE checking for duplicates
     const translatedText = language === 'hi-IN' ? translateToHindi(text) : text;
     
     if (translatedText === lastMessage.current && !priority) return;
@@ -27,26 +27,42 @@ export const useVoiceCoach = () => {
     }
 
     const utterance = new SpeechSynthesisUtterance(translatedText);
-    utterance.rate = 1.0;
+    utterance.rate = 0.95;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
     utterance.lang = language;
 
-    utterance.onstart = () => {
-      isSpeaking.current = true;
-      lastSpeakTime.current = now;
-      lastMessage.current = translatedText;
+    // Wait for voices to load
+    const speakWithVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (language === 'hi-IN') {
+        const hindiVoice = voices.find(v => v.lang === 'hi-IN' || v.lang.startsWith('hi'));
+        if (hindiVoice) utterance.voice = hindiVoice;
+      }
+
+      utterance.onstart = () => {
+        isSpeaking.current = true;
+        lastSpeakTime.current = now;
+        lastMessage.current = translatedText;
+      };
+
+      utterance.onend = () => {
+        isSpeaking.current = false;
+      };
+
+      utterance.onerror = () => {
+        isSpeaking.current = false;
+      };
+
+      window.speechSynthesis.speak(utterance);
     };
 
-    utterance.onend = () => {
-      isSpeaking.current = false;
-    };
-
-    utterance.onerror = () => {
-      isSpeaking.current = false;
-    };
-
-    window.speechSynthesis.speak(utterance);
+    // Ensure voices are loaded
+    if (window.speechSynthesis.getVoices().length > 0) {
+      speakWithVoice();
+    } else {
+      window.speechSynthesis.onvoiceschanged = speakWithVoice;
+    }
   }, [enabled, language]);
 
   const toggle = () => setEnabled(!enabled);
@@ -62,60 +78,113 @@ export const useVoiceCoach = () => {
 // Hindi translations for common phrases
 const translateToHindi = (text) => {
   const translations = {
-    // Squat
+    // Squat feedback
+    'Stand ready': 'तैयार खड़े रहें',
+    '✓ Good depth! Now stand up': '✓ अच्छी गहराई! अब खड़े हो जाएं',
+    '✓ Rep complete! Go down again': '✓ एक पूरा! फिर से नीचे जाएं',
+    '△ Go lower (below 100°)': '△ और नीचे जाएं (100° से नीचे)',
+    '✗ Too deep - risk of injury': '✗ बहुत गहरा - चोट का खतरा',
+    'Squat down': 'स्क्वाट करें',
+    
+    // Bicep Curl feedback
+    'Arm at side': 'हाथ बगल में',
+    'Good curl! Lower down': 'अच्छा कर्ल! नीचे करें',
+    'Rep complete! Curl again': 'एक पूरा! फिर से कर्ल करें',
+    'Extend arm fully': 'हाथ पूरा फैलाएं',
+    'Curl up more': 'और ऊपर कर्ल करें',
+    
+    // Knee Raise feedback
+    'Stand straight': 'सीधे खड़े रहें',
+    'Good! Lower leg': 'अच्छा! पैर नीचे करें',
+    'Rep done! Raise again': 'एक पूरा! फिर से उठाएं',
+    'Raise your knee': 'घुटना उठाएं',
+    'Lower your leg': 'पैर नीचे करें',
+    
+    // Shoulder Press feedback
+    'Start position': 'शुरुआती स्थिति',
+    'Great press! Lower down': 'बढ़िया प्रेस! नीचे करें',
+    'Rep complete! Press again': 'एक पूरा! फिर से प्रेस करें',
+    'Press arms up': 'हाथ ऊपर दबाएं',
+    'Lower to shoulders': 'कंधों तक नीचे करें',
+    
+    // Lateral Raise feedback
+    'Arms at sides': 'हाथ बगल में',
+    'Hold! Lower slowly': 'रुकें! धीरे नीचे करें',
+    'Rep done! Raise again': 'एक पूरा! फिर से उठाएं',
+    
+    // Lunge feedback
+    'Good lunge! Return up': 'अच्छा लंज! वापस ऊपर आएं',
+    'Rep complete! Lunge again': 'एक पूरा! फिर से लंज करें',
+    
+    // Calf Raise feedback
+    'Rise on toes': 'पंजों पर उठें',
+    'Hold! Lower heels': 'रुकें! एड़ी नीचे करें',
+    'Rep done! Raise again': 'एक पूरा! फिर से उठाएं',
+    
+    // Arm Circle feedback
+    'Make slow circles': 'धीरे-धीरे गोल घुमाएं',
+    
+    // Safety messages from safetyRules.js
     'Too deep. Come up slightly.': 'बहुत नीचे। थोड़ा ऊपर आएं।',
     'Bend your knees more. Go lower.': 'घुटने और मोड़ें। नीचे जाएं।',
-    'Perfect squat depth. Hold it.': 'बिल्कुल सही। इसे पकड़ें।',
-    'Keep your back straight.': 'अपनी पीठ सीधी रखें।',
-    
-    // Lunge
+    'Perfect squat depth. Hold it.': 'बिल्कुल सही गहराई। पकड़ें।',
+    'Keep your back straight.': 'पीठ सीधी रखें।',
     'Not too deep. Come up.': 'बहुत नीचे नहीं। ऊपर आएं।',
     'Lower your back knee more.': 'पिछला घुटना और नीचे करें।',
-    'Great lunge form. Hold steady.': 'बहुत अच्छा। स्थिर रहें।',
+    'Great lunge form. Hold steady.': 'बढ़िया लंज। स्थिर रहें।',
     'Keep torso upright.': 'धड़ सीधा रखें।',
-    
-    // Bicep Curl
-    'Curl up more. Bring weight to shoulder.': 'और ऊपर उठाएं। कंधे तक लाएं।',
+    'Curl up more. Bring weight to shoulder.': 'और ऊपर कर्ल करें। कंधे तक लाएं।',
     'Lower your arm. Extend fully.': 'हाथ नीचे करें। पूरा फैलाएं।',
     'Perfect curl. Squeeze at the top.': 'बिल्कुल सही। ऊपर दबाएं।',
     'Keep elbow stable. Don\'t swing.': 'कोहनी स्थिर रखें। झूलें नहीं।',
-    
-    // Shoulder Press
+    'Slow and controlled movement.': 'धीरे और नियंत्रित गति।',
     'Press arms up higher. Full extension.': 'हाथ और ऊपर दबाएं। पूरा फैलाएं।',
     'Lower to shoulder level.': 'कंधे के स्तर तक नीचे करें।',
     'Perfect press. Arms fully extended.': 'बिल्कुल सही। हाथ पूरे फैले।',
-    'Engage your core. Don\'t arch back.': 'पेट कस लें। पीठ मोड़ें नहीं।',
-    
-    // Lateral Raise
+    'Engage your core. Don\'t arch back.': 'पेट कसें। पीठ मोड़ें नहीं।',
+    'Breathe out as you press up.': 'ऊपर दबाते समय सांस छोड़ें।',
     'Raise arms higher. To shoulder level.': 'हाथ और ऊपर उठाएं। कंधे तक।',
     'Lower slightly. Don\'t go above shoulders.': 'थोड़ा नीचे करें। कंधे से ऊपर नहीं।',
     'Perfect height. Arms parallel to floor.': 'सही ऊंचाई। हाथ जमीन के समानांतर।',
-    
-    // Knee Raise
+    'Slow down. Control the movement.': 'धीरे करें। गति नियंत्रित करें।',
+    'Keep arms slightly bent.': 'हाथ थोड़े मुड़े रखें।',
     'Lift knee higher. To hip level.': 'घुटना और ऊपर उठाएं। कूल्हे तक।',
     'Lower your knee slightly.': 'घुटना थोड़ा नीचे करें।',
     'Perfect knee height. Hold balance.': 'सही ऊंचाई। संतुलन बनाएं।',
     'Focus on balance. Engage core.': 'संतुलन पर ध्यान दें। पेट कसें।',
     'Stand tall. Don\'t lean back.': 'सीधे खड़े रहें। पीछे झुकें नहीं।',
-    
-    // Calf Raise
     'Rise higher on your toes.': 'पंजों पर और ऊपर उठें।',
     'Good height. Hold at the top.': 'अच्छी ऊंचाई। ऊपर रुकें।',
     'Perfect calf raise. Squeeze at top.': 'बिल्कुल सही। ऊपर दबाएं।',
+    'Keep your balance. Use wall if needed.': 'संतुलन बनाएं। जरूरत हो तो दीवार का सहारा लें।',
+    'Slow descent. Control the movement.': 'धीरे नीचे आएं। गति नियंत्रित करें।',
+    'Make bigger circles. Full range.': 'बड़े गोले बनाएं। पूरी रेंज।',
+    'Good range of motion.': 'अच्छी गति रेंज।',
+    'Perfect circles. Keep arms straight.': 'बिल्कुल सही गोले। हाथ सीधे रखें।',
+    'Slow and smooth circles.': 'धीरे और सुचारू गोले।',
+    'Keep arms extended. Don\'t bend elbows.': 'हाथ फैले रखें। कोहनी मोड़ें नहीं।',
+    'Shift weight to your left leg.': 'वजन बाएं पैर पर डालें।',
+    'Shift weight to your right leg.': 'वजन दाएं पैर पर डालें।',
+    'Balance on your left side.': 'बाईं ओर संतुलन बनाएं।',
+    'Balance on your right side.': 'दाईं ओर संतुलन बनाएं।',
+    'Adjust slightly. Keep your posture aligned.': 'थोड़ा समायोजित करें। मुद्रा सीधी रखें।',
+    'Adjust your depth.': 'गहराई समायोजित करें।',
+    'Adjust your knee angle.': 'घुटने का कोण समायोजित करें।',
+    'Adjust your arm angle.': 'हाथ का कोण समायोजित करें।',
     
-    // General
-    'Slow and controlled movement.': 'धीरे और नियंत्रित गति।',
-    'Slow down. Control the movement.': 'धीरे करें। गति नियंत्रित करें।',
+    // Rep milestones
     'First rep complete. Keep going.': 'पहला पूरा हुआ। जारी रखें।',
-    'Great work.': 'बहुत अच्छा।',
+    'Great work.': 'बहुत बढ़िया।',
     'Keep going.': 'जारी रखें।',
   };
 
-  // Check for rep count messages
-  const repMatch = text.match(/(\d+) reps? (done|completed)/);
+  // Check for rep count messages (e.g., "5 reps done. Great work.")
+  const repMatch = text.match(/(\d+) reps? (done|completed)\.? ?(.*)/);
   if (repMatch) {
-    return `${repMatch[1]} बार पूरे हुए। बहुत अच्छा।`;
+    const count = repMatch[1];
+    return `${count} बार पूरे हुए। बहुत बढ़िया।`;
   }
 
+  // Return translated text or original if not found
   return translations[text] || text;
 };
