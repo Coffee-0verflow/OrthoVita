@@ -28,8 +28,8 @@ export const POSE_LANDMARKS = {
   RIGHT_ANKLE: 28,
 };
 
-// Draw skeleton on canvas
-export const drawSkeleton = (ctx, landmarks, width, height) => {
+// Draw skeleton with joint labels and angles
+export const drawSkeleton = (ctx, landmarks, width, height, exerciseData = null) => {
   const connections = [
     [11, 13], [13, 15], // Left arm
     [12, 14], [14, 16], // Right arm
@@ -41,8 +41,10 @@ export const drawSkeleton = (ctx, landmarks, width, height) => {
   ];
 
   // Draw connections
-  ctx.strokeStyle = '#00ff00';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 3;
+  ctx.shadowColor = '#00e5ff';
+  ctx.shadowBlur = 8;
   connections.forEach(([start, end]) => {
     const startPoint = landmarks[start];
     const endPoint = landmarks[end];
@@ -53,12 +55,60 @@ export const drawSkeleton = (ctx, landmarks, width, height) => {
       ctx.stroke();
     }
   });
+  ctx.shadowBlur = 0;
 
-  // Draw landmarks
-  ctx.fillStyle = '#ff0000';
-  landmarks.forEach((landmark) => {
-    ctx.beginPath();
-    ctx.arc(landmark.x * width, landmark.y * height, 5, 0, 2 * Math.PI);
-    ctx.fill();
+  // Draw key joint points with labels
+  const keyJoints = [
+    { idx: POSE_LANDMARKS.LEFT_SHOULDER, label: 'Shoulder' },
+    { idx: POSE_LANDMARKS.LEFT_ELBOW, label: 'Elbow' },
+    { idx: POSE_LANDMARKS.LEFT_WRIST, label: 'Wrist' },
+    { idx: POSE_LANDMARKS.LEFT_HIP, label: 'Hip' },
+    { idx: POSE_LANDMARKS.LEFT_KNEE, label: 'Knee' },
+    { idx: POSE_LANDMARKS.LEFT_ANKLE, label: 'Ankle' },
+  ];
+
+  keyJoints.forEach(({ idx, label }) => {
+    const point = landmarks[idx];
+    if (point) {
+      const x = point.x * width;
+      const y = point.y * height;
+      
+      // Draw joint circle
+      ctx.fillStyle = '#00ff9d';
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Draw label background
+      ctx.fillStyle = 'rgba(6, 11, 20, 0.8)';
+      ctx.fillRect(x + 10, y - 8, 60, 16);
+      
+      // Draw label text
+      ctx.fillStyle = '#00e5ff';
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillText(label, x + 14, y + 3);
+    }
   });
+
+  // Draw angle if available
+  if (exerciseData?.angle) {
+    ctx.fillStyle = 'rgba(0, 229, 255, 0.9)';
+    ctx.font = 'bold 24px "Syne", sans-serif';
+    ctx.fillText(`${exerciseData.angle}°`, 20, 40);
+    
+    ctx.fillStyle = '#4a5e80';
+    ctx.font = '12px "JetBrains Mono", monospace';
+    ctx.fillText('JOINT ANGLE', 20, 60);
+  }
+};
+
+// Validate posture and return feedback
+export const validatePosture = (angle, idealMin, idealMax) => {
+  if (angle >= idealMin && angle <= idealMax) {
+    return { status: '✓', message: 'Perfect form!', color: '#00ff9d' };
+  } else if (angle < idealMin) {
+    return { status: '✗', message: 'Bend more', color: '#ff4444' };
+  } else {
+    return { status: '△', message: 'Adjust posture', color: '#ffaa00' };
+  }
 };

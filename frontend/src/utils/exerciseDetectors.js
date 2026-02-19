@@ -8,29 +8,36 @@ export const detectSquat = (landmarks, prevState) => {
   const leftShoulder = getLandmark(landmarks, POSE_LANDMARKS.LEFT_SHOULDER);
 
   const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
-  const isDown = kneeAngle < 100;
+  const isDown = kneeAngle >= 80 && kneeAngle <= 100; // Ideal squat range
   const isUp = kneeAngle > 160;
 
   let feedback = 'Stand with feet shoulder-width apart';
   let reps = prevState?.reps || 0;
   let stage = prevState?.stage || 'up';
+  let status = 'neutral';
 
   if (isDown && stage === 'up') {
     stage = 'down';
-    feedback = 'Good! Now stand up';
+    feedback = '✓ Perfect squat! Now stand up';
+    status = 'correct';
   } else if (isUp && stage === 'down') {
     stage = 'up';
     reps++;
-    feedback = 'Great rep! Go down again';
+    feedback = '✓ Great rep! Go down again';
+    status = 'correct';
   } else if (stage === 'down' && kneeAngle > 100 && kneeAngle < 160) {
-    feedback = 'Go lower for full squat';
+    feedback = '△ Bend more (80°-100° ideal)';
+    status = 'adjust';
+  } else if (stage === 'down' && kneeAngle < 80) {
+    feedback = '✗ Too low - risk of injury';
+    status = 'incorrect';
   } else if (stage === 'up') {
-    feedback = 'Squat down';
+    feedback = 'Squat down to 90°';
   }
 
   const accuracy = isDown || isUp ? 100 : Math.max(0, 100 - Math.abs(kneeAngle - 90));
 
-  return { reps, stage, feedback, accuracy: Math.round(accuracy), angle: Math.round(kneeAngle) };
+  return { reps, stage, feedback, accuracy: Math.round(accuracy), angle: Math.round(kneeAngle), status };
 };
 
 // Exercise detector for Bicep Curl

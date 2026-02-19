@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { usePoseDetection } from '../hooks/usePoseDetection';
+import { useVoiceCoach } from '../hooks/useVoiceCoach';
 import { drawSkeleton } from '../utils/poseUtils';
 import { EXERCISES } from '../utils/exerciseDetectors';
+import { validateSafety, SAFETY_RULES } from '../utils/safetyRules';
 import { useStore } from '../store/useStore';
 
 export const WebcamFeed = () => {
@@ -12,9 +14,14 @@ export const WebcamFeed = () => {
 
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraError, setCameraError] = useState(null);
-  const [videoReady, setVideoReady] = useState(false); // true once video is actually playing
+  const [videoReady, setVideoReady] = useState(false);
+  const [safetyStatus, setSafetyStatus] = useState(null);
 
-  const { currentExercise, isActive, updateStats, stopSession } = useStore();
+  const { currentExercise, isActive, updateStats, stopSession, reps } = useStore();
+  const { speak, enabled: voiceEnabled, language, toggle: toggleVoice, toggleLanguage } = useVoiceCoach();
+  const lastRepSpoken = useRef(0);
+  const prevAngle = useRef(0);
+  const feedbackCount = useRef(0);
 
   // ── Pose detection callback ────────────────────────────────────────────────
   const onPoseResults = useCallback((landmarks) => {
@@ -24,7 +31,6 @@ export const WebcamFeed = () => {
     const video = videoRef.current;
     if (!canvas || !video) return;
 
-    // Keep canvas size in sync
     if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
       canvas.width = video.videoWidth || 640;
       canvas.height = video.videoHeight || 480;
@@ -32,15 +38,43 @@ export const WebcamFeed = () => {
 
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawSkeleton(ctx, landmarks, canvas.width, canvas.height);
 
     const detector = EXERCISES[currentExercise]?.detector;
     if (detector) {
       const result = detector(landmarks, exerciseStateRef.current);
       exerciseStateRef.current = result;
-      updateStats(result.reps, result.accuracy, result.feedback);
+      updateStats(result.reps, result.accuracy, result.feedback, result.angle);
+      
+      drawSkeleton(ctx, landmarks, canvas.width, canvas.height, result);
+
+      // Safety validation with angle tracking
+      if (result.angle) {
+        const safety = validateSafety(currentExercise, result.angle, prevAngle.current);
+        setSafetyStatus(safety);
+        
+        // Voice feedback with priority for risk
+        if (safety.voice && feedbackCount.current % 3 === 0) {
+          speak(safety.voice, safety.priority || false);
+        }
+        feedbackCount.current++;
+        prevAngle.current = result.angle;
+      }
+
+      // Rep milestone voice (every 5 reps)
+      if (result.reps > 0 && result.reps % 5 === 0 && result.reps !== lastRepSpoken.current) {
+        speak(`${result.reps} reps done. Great work.`, true);
+        lastRepSpoken.current = result.reps;
+      }
+
+      // First rep encouragement
+      if (result.reps === 1 && lastRepSpoken.current === 0) {
+        speak('First rep complete. Keep going.', true);
+        lastRepSpoken.current = 1;
+      }
+    } else {
+      drawSkeleton(ctx, landmarks, canvas.width, canvas.height);
     }
-  }, [isActive, currentExercise, updateStats]);
+  }, [isActive, currentExercise, updateStats, speak]);
 
   const { isReady, error: poseError, startDetection, stopDetection } = usePoseDetection(onPoseResults);
 
@@ -206,6 +240,62 @@ export const WebcamFeed = () => {
           {isActive ? 'TRACKING' : 'LIVE'}
         </span>
       </div>
+
+      {/* Voice toggle */}
+      <button
+        onClick={toggleVoice}
+        className="absolute top-3 right-14 z-30 w-9 h-9 bg-[#060b14]/90 border border-[#1c2e50]
+          rounded-xl flex items-center justify-center text-sm backdrop-blur-sm transition-all"
+        style={{ color: voiceEnabled ? '#00e5ff' : '#4a5e80' }}
+        title={voiceEnabled ? 'Voice ON' : 'Voice OFF'}
+      >
+        {voiceEnabled ? '🔊' : '🔇'}
+      </button>
+
+      {/* Language toggle */}
+      <button
+        onClick={toggleLanguage}
+        className="absolute top-14 right-14 z-30 px-2 py-1 bg-[#060b14]/90 border border-[#1c2e50]
+          rounded-lg text-xs backdrop-blur-sm transition-all font-bold"
+        style={{ color: '#00e5ff' }}
+        title="Toggle Language"
+      >
+        {language === 'en-US' ? 'EN' : 'हि'}
+      </button>
+
+      {/* Safety status overlay */}
+      {safetyStatus && isActive && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30
+          px-6 py-3 rounded-xl backdrop-blur-sm font-bold text-lg shadow-lg animate-pulse"
+          style={{
+            backgroundColor: `${safetyStatus.color}20`,
+            border: `2px solid ${safetyStatus.color}`,
+            color: safetyStatus.color
+          }}>
+          {safetyStatus.status === 'risk' && '⚠️ '}
+          {safetyStatus.status === 'ideal' && '✓ '}
+          {safetyStatus.status === 'adjust' && '△ '}
+          {safetyStatus.message}
+        </div>
+      )}
+
+      {/* Angle display */}
+      {isActive && exerciseStateRef.current?.angle && (
+        <div className="absolute bottom-16 left-4 z-30 bg-[#060b14]/90 border border-[#1c2e50]
+          rounded-xl p-3 backdrop-blur-sm">
+          <div className="text-xs text-[#4a5e80] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            CURRENT ANGLE
+          </div>
+          <div className="text-3xl font-black text-[#00e5ff]" style={{ fontFamily: "'Syne', sans-serif" }}>
+            {exerciseStateRef.current.angle}°
+          </div>
+          {SAFETY_RULES[currentExercise] && (
+            <div className="text-xs text-[#4a5e80] mt-1">
+              Target: {SAFETY_RULES[currentExercise].ideal.min}°-{SAFETY_RULES[currentExercise].ideal.max}°
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Corner brackets decoration */}
       {[['top-3 left-3','border-t-2 border-l-2'],['top-3 right-3','border-t-2 border-r-2'],

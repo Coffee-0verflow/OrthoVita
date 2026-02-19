@@ -1,47 +1,108 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-export const useStore = create((set) => ({
-  // Exercise state
-  currentExercise: null,
-  isActive: false,
-  reps: 0,
-  accuracy: 100,
-  feedback: '',
-  sessionStartTime: null,
-  sessionData: [],
+export const useStore = create(
+  persist(
+    (set) => ({
+      // User state
+      user: null,
+      rehabDay: 1,
+      confirmedInjury: null,
+      rehabPlan: null,
+      sessionHistory: [],
 
-  // Actions
-  setExercise: (exercise) => set({ 
-    currentExercise: exercise, 
-    reps: 0, 
-    accuracy: 100,
-    sessionData: [],
-    sessionStartTime: null 
-  }),
-  
-  startSession: () => set({ 
-    isActive: true, 
-    sessionStartTime: Date.now(),
-    reps: 0,
-    sessionData: []
-  }),
-  
-  stopSession: () => set({ isActive: false }),
-  
-  updateStats: (reps, accuracy, feedback) => set((state) => ({
-    reps,
-    accuracy,
-    feedback,
-    sessionData: [...state.sessionData, { reps, accuracy, timestamp: Date.now() }]
-  })),
+      // Exercise state
+      currentExercise: null,
+      isActive: false,
+      reps: 0,
+      accuracy: 100,
+      feedback: '',
+      sessionStartTime: null,
+      sessionData: [],
+      badPostureCount: 0,
 
-  resetSession: () => set({
-    currentExercise: null,
-    isActive: false,
-    reps: 0,
-    accuracy: 100,
-    feedback: '',
-    sessionStartTime: null,
-    sessionData: []
-  })
-}));
+      // Actions
+      setUser: (user) => set({ user }),
+      setInjury: (injury) => set({ confirmedInjury: injury }),
+      setRehabPlan: (plan) => set({ rehabPlan: plan }),
+      incrementRehabDay: () => set((state) => ({ rehabDay: state.rehabDay + 1 })),
+
+      setExercise: (exercise) => set({ 
+        currentExercise: exercise, 
+        reps: 0, 
+        accuracy: 100,
+        sessionData: [],
+        sessionStartTime: null,
+        badPostureCount: 0
+      }),
+      
+      startSession: () => set({ 
+        isActive: true, 
+        sessionStartTime: Date.now(),
+        reps: 0,
+        sessionData: [],
+        badPostureCount: 0
+      }),
+      
+      stopSession: () => set((state) => {
+        const duration = Math.floor((Date.now() - state.sessionStartTime) / 1000);
+        const avgAccuracy = state.sessionData.length > 0
+          ? Math.round(state.sessionData.reduce((sum, d) => sum + d.accuracy, 0) / state.sessionData.length)
+          : 0;
+        const avgAngle = state.sessionData.length > 0
+          ? Math.round(state.sessionData.reduce((sum, d) => sum + (d.angle || 0), 0) / state.sessionData.length)
+          : 0;
+        const badPosturePercent = state.sessionData.length > 0
+          ? Math.round((state.badPostureCount / state.sessionData.length) * 100)
+          : 0;
+
+        const session = {
+          exercise: state.currentExercise,
+          reps: state.reps,
+          avgAccuracy,
+          avgAngle,
+          badPosturePercent,
+          duration,
+          timestamp: Date.now()
+        };
+
+        return {
+          isActive: false,
+          sessionHistory: [...state.sessionHistory.slice(-9), session]
+        };
+      }),
+      
+      updateStats: (reps, accuracy, feedback, angle) => set((state) => {
+        const isBadPosture = accuracy < 70;
+        return {
+          reps,
+          accuracy,
+          feedback,
+          sessionData: [...state.sessionData, { reps, accuracy, angle: angle || 0, timestamp: Date.now() }],
+          badPostureCount: isBadPosture ? state.badPostureCount + 1 : state.badPostureCount
+        };
+      }),
+
+      resetSession: () => set({
+        currentExercise: null,
+        isActive: false,
+        reps: 0,
+        accuracy: 100,
+        feedback: '',
+        sessionStartTime: null,
+        sessionData: [],
+        badPostureCount: 0
+      })
+    }),
+    {
+      name: 'orthovita-storage',
+      partialize: (state) => ({
+        user: state.user,
+        rehabDay: state.rehabDay,
+        confirmedInjury: state.confirmedInjury,
+        rehabPlan: state.rehabPlan,
+        sessionHistory: state.sessionHistory
+      })
+    }
+  )
+);
