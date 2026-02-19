@@ -110,7 +110,11 @@ export const useStore = create(
         sessionStartTime: null,
         sessionData: [],
         badPostureCount: 0
-      })
+      }),
+
+      deleteSession: (sessionIndex) => set((state) => ({
+        sessionHistory: state.sessionHistory.filter((_, index) => index !== sessionIndex)
+      }))
     }),
     {
       name: 'orthovita-storage',

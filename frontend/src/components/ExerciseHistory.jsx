@@ -1,12 +1,51 @@
 import { useStore } from '../store/useStore';
 import { EXERCISES } from '../utils/exerciseDetectors';
+import * as XLSX from 'xlsx';
 
 export const ExerciseHistory = ({ onClose }) => {
-  const { sessionHistory } = useStore();
+  const { sessionHistory, deleteSession } = useStore();
 
   const getDateFromTimestamp = (timestamp) => {
     const date = new Date(timestamp);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  const downloadHistory = () => {
+    const data = [
+      ['Date', 'Exercise', 'Reps', 'Accuracy (%)', 'Duration (seconds)', 'Day', 'Time'],
+      ...sessionHistory.map(session => [
+        session.date || getDateFromTimestamp(session.timestamp),
+        EXERCISES[session.exercise]?.name || session.exercise,
+        session.reps,
+        session.avgAccuracy,
+        session.duration,
+        session.day || 1,
+        new Date(session.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      ])
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 12 },  // Date
+      { wch: 18 },  // Exercise
+      { wch: 8 },   // Reps
+      { wch: 14 },  // Accuracy
+      { wch: 18 },  // Duration
+      { wch: 8 },   // Day
+      { wch: 10 }   // Time
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Exercise History');
+    XLSX.writeFile(wb, `orthovita-history-${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  const handleDeleteSession = (sessionIndex) => {
+    if (confirm('Are you sure you want to delete this session?')) {
+      deleteSession(sessionIndex);
+    }
   };
 
   const groupByDate = () => {
@@ -57,14 +96,27 @@ export const ExerciseHistory = ({ onClose }) => {
             </h2>
             <p className="text-sm text-[#4a5e80] mt-1">Your rehabilitation journey</p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-[#4a5e80] hover:text-[#e8f0ff] transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-3">
+            {sessionHistory.length > 0 && (
+              <button
+                onClick={downloadHistory}
+                className="flex items-center gap-2 px-3 py-2 bg-[#00e5ff] text-[#0d1526] rounded-lg hover:bg-[#00b8cc] transition-colors text-sm font-bold"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Download
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="text-[#4a5e80] hover:text-[#e8f0ff] transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="overflow-y-auto p-6 space-y-6">
@@ -92,14 +144,15 @@ export const ExerciseHistory = ({ onClose }) => {
                   </div>
 
                   <div className="space-y-3">
-                    {sessions.map((session, idx) => {
+                    {sessions.map((session, sessionIdx) => {
+                      const globalIndex = sessionHistory.findIndex(s => s.timestamp === session.timestamp);
                       const grade = session.avgAccuracy >= 90 ? { label: 'Excellent', color: '#00ff9d' }
                         : session.avgAccuracy >= 75 ? { label: 'Good', color: '#00e5ff' }
                         : session.avgAccuracy >= 60 ? { label: 'Fair', color: '#ff6b35' }
                         : { label: 'Practice', color: '#ff3366' };
 
                       return (
-                        <div key={idx} className="bg-[#0d1526] border border-[#1c2e50] rounded-lg p-3">
+                        <div key={sessionIdx} className="bg-[#0d1526] border border-[#1c2e50] rounded-lg p-3 group">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-bold text-[#e8f0ff]">
@@ -116,9 +169,20 @@ export const ExerciseHistory = ({ onClose }) => {
                                 {grade.label}
                               </span>
                             </div>
-                            <span className="text-xs text-[#4a5e80]">
-                              {formatTime(session.timestamp)}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-[#4a5e80]">
+                                {formatTime(session.timestamp)}
+                              </span>
+                              <button
+                                onClick={() => handleDeleteSession(globalIndex)}
+                                className="opacity-0 group-hover:opacity-100 text-[#ff3366] hover:text-[#ff6b9d] transition-all p-1 rounded"
+                                title="Delete session"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-3 gap-3 text-center">
