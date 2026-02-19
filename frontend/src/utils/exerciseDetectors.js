@@ -289,6 +289,63 @@ export const detectArmCircle = (landmarks, prevState) => {
   return { reps, stage, feedback, accuracy, angle: Math.round(armAngle), lastPosition };
 };
 
+// Exercise detector for Wrist Rotation
+export const detectWristRotation = (landmarks, prevState) => {
+  const leftElbow = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ELBOW);
+  const leftWrist = getLandmark(landmarks, POSE_LANDMARKS.LEFT_WRIST);
+
+  const wristX = leftWrist.x;
+  const elbowX = leftElbow.x;
+  const relativeX = wristX - elbowX;
+
+  const isLeft = relativeX < -0.08;
+  const isRight = relativeX > 0.08;
+  const isCenter = relativeX >= -0.03 && relativeX <= 0.03;
+
+  let feedback = 'Extend arm forward';
+  let reps = prevState?.reps || 0;
+  let stage = prevState?.stage || 'center';
+  let status = 'neutral';
+  let accuracy = 100;
+
+  if (stage === 'center' && (isLeft || isRight)) {
+    if (isLeft) {
+      stage = 'left';
+      feedback = '✓ Good! Now move right';
+      status = 'correct';
+      accuracy = 100;
+    } else if (isRight) {
+      stage = 'right';
+      feedback = '✓ Good! Now move left';
+      status = 'correct';
+      accuracy = 100;
+    }
+  } else if (stage === 'left' && isRight) {
+    stage = 'right';
+    reps++;
+    feedback = '✓ Rep counted! Move left again';
+    status = 'correct';
+    accuracy = 100;
+  } else if (stage === 'right' && isLeft) {
+    stage = 'left';
+    feedback = '✓ Good! Move right';
+    status = 'correct';
+    accuracy = 100;
+  } else if (stage === 'center') {
+    feedback = 'Move wrist side to side';
+  } else if (stage === 'left' && !isRight && !isCenter) {
+    feedback = '✗ Move wrist to the right';
+    status = 'incorrect';
+    accuracy = 70;
+  } else if (stage === 'right' && !isLeft && !isCenter) {
+    feedback = '✗ Move wrist to the left';
+    status = 'incorrect';
+    accuracy = 70;
+  }
+
+  return { reps, stage, feedback, accuracy, angle: 0, status };
+};
+
 // Exercise detector for Calf Raises
 export const detectCalfRaise = (landmarks, prevState) => {
   const leftAnkle = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ANKLE);
@@ -359,6 +416,12 @@ export const EXERCISES = {
     name: 'Arm Circle',
     detector: detectArmCircle,
     description: 'Shoulder flexibility - Face camera',
+    category: 'Upper Body',
+  },
+  wristRotation: {
+    name: 'Wrist Side to Side',
+    detector: detectWristRotation,
+    description: 'Wrist mobility - Face camera',
     category: 'Upper Body',
   },
   kneeRaise: {

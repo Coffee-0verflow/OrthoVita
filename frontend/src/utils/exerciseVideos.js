@@ -78,5 +78,15 @@ export const EXERCISE_VIDEOS = {
       'Keep arms straight',
       'Gradually increase circle size'
     ]
+  },
+  wristRotation: {
+    url: 'https://www.youtube.com/embed/4EGomYDgLKM',
+    title: 'Wrist Side to Side Exercise',
+    keyPoints: [
+      'Extend arm forward at shoulder height',
+      'Move wrist side to side slowly',
+      'Keep forearm stable',
+      'Full range of motion'
+    ]
   }
 };
