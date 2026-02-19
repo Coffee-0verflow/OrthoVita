@@ -1,7 +1,27 @@
 import { useStore } from '../store/useStore';
+import { EXERCISES } from '../utils/exerciseDetectors';
 
 export const StatsPanel = () => {
-  const { reps, accuracy, feedback, isActive, sessionStartTime } = useStore();
+  const { reps, accuracy, feedback, isActive, sessionStartTime, currentExercise } = useStore();
+
+  const getRepLabel = () => {
+    if (!currentExercise) return 'REPS';
+    const exercise = EXERCISES[currentExercise];
+    if (!exercise) return 'REPS';
+    
+    const name = exercise.name.toUpperCase();
+    if (name.includes('CURL')) return 'CURLS';
+    if (name.includes('SQUAT')) return 'SQUATS';
+    if (name.includes('LUNGE')) return 'LUNGES';
+    if (name.includes('RAISE')) return 'RAISES';
+    if (name.includes('PRESS')) return 'PRESSES';
+    if (name.includes('PUSH')) return 'PUSHES';
+    if (name.includes('CIRCLE')) return 'CIRCLES';
+    if (name.includes('ROTATION')) return 'ROTATIONS';
+    if (name.includes('TWIST')) return 'TWISTS';
+    if (name.includes('PLANK')) return 'SECONDS';
+    return 'REPS';
+  };
 
   const getSessionDuration = () => {
     if (!sessionStartTime) return '0:00';
@@ -22,7 +42,7 @@ export const StatsPanel = () => {
             {reps}
           </div>
           <div className="text-xs text-[#4a5e80] mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            REPS
+            {getRepLabel()}
           </div>
         </div>
 
