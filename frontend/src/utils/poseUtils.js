@@ -14,6 +14,10 @@ export const getLandmark = (landmarks, index) => {
 // MediaPipe Pose Landmark Indices
 export const POSE_LANDMARKS = {
   NOSE: 0,
+  LEFT_EYE: 2,
+  RIGHT_EYE: 5,
+  LEFT_EAR: 7,
+  RIGHT_EAR: 8,
   LEFT_SHOULDER: 11,
   RIGHT_SHOULDER: 12,
   LEFT_ELBOW: 13,
@@ -31,6 +35,8 @@ export const POSE_LANDMARKS = {
 // Draw skeleton with joint labels and angles
 export const drawSkeleton = (ctx, landmarks, width, height, exerciseData = null) => {
   const connections = [
+    [0, 7], [0, 8], // Nose to ears
+    [7, 11], [8, 12], // Ears to shoulders
     [11, 13], [13, 15], // Left arm
     [12, 14], [14, 16], // Right arm
     [11, 12], // Shoulders
@@ -59,6 +65,7 @@ export const drawSkeleton = (ctx, landmarks, width, height, exerciseData = null)
 
   // Draw key joint points with labels
   const keyJoints = [
+    { idx: POSE_LANDMARKS.NOSE, label: 'Nose' },
     { idx: POSE_LANDMARKS.LEFT_SHOULDER, label: 'Shoulder' },
     { idx: POSE_LANDMARKS.LEFT_ELBOW, label: 'Elbow' },
     { idx: POSE_LANDMARKS.LEFT_WRIST, label: 'Wrist' },
