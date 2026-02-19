@@ -73,13 +73,15 @@ export const useStore = create(
       }),
       
       updateStats: (reps, accuracy, feedback, angle) => set((state) => {
-        const isBadPosture = accuracy < 70;
+        const newSessionData = [...state.sessionData, { reps, accuracy, angle: angle || 0, timestamp: Date.now() }];
+        const avgAccuracy = Math.round(newSessionData.reduce((sum, d) => sum + d.accuracy, 0) / newSessionData.length);
+        
         return {
           reps,
-          accuracy,
+          accuracy: avgAccuracy,
           feedback,
-          sessionData: [...state.sessionData, { reps, accuracy, angle: angle || 0, timestamp: Date.now() }],
-          badPostureCount: isBadPosture ? state.badPostureCount + 1 : state.badPostureCount
+          sessionData: newSessionData,
+          badPostureCount: accuracy < 70 ? state.badPostureCount + 1 : state.badPostureCount
         };
       }),
 
