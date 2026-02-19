@@ -88,5 +88,15 @@ export const EXERCISE_VIDEOS = {
       'Keep forearm stable',
       'Full range of motion'
     ]
+  },
+  neckTilt: {
+    url: 'https://www.youtube.com/embed/_MN3TIcIiWI',
+    title: 'Neck Tilt Up and Down',
+    keyPoints: [
+      'Sit or stand with shoulders relaxed',
+      'Slowly tilt head back to look up',
+      'Return to neutral position',
+      'Tilt head down to look at chest'
+    ]
   }
 };

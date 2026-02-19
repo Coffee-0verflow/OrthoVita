@@ -359,6 +359,57 @@ export const detectWristRotation = (landmarks, prevState) => {
   return { reps, stage, feedback, accuracy, angle: 0, status };
 };
 
+// Exercise detector for Neck Tilt
+export const detectNeckTilt = (landmarks, prevState) => {
+  const nose = getLandmark(landmarks, POSE_LANDMARKS.NOSE);
+  const leftShoulder = getLandmark(landmarks, POSE_LANDMARKS.LEFT_SHOULDER);
+  const rightShoulder = getLandmark(landmarks, POSE_LANDMARKS.RIGHT_SHOULDER);
+
+  const shoulderMidY = (leftShoulder.y + rightShoulder.y) / 2;
+  const noseY = nose.y;
+  const relativeY = noseY - shoulderMidY;
+
+  const isUp = relativeY < -0.25;
+  const isDown = relativeY > -0.10;
+  const isNeutral = relativeY >= -0.20 && relativeY <= -0.15;
+
+  let feedback = 'Face camera';
+  let reps = prevState?.reps || 0;
+  let stage = prevState?.stage || 'neutral';
+  let status = 'neutral';
+  let accuracy = 100;
+
+  if (stage === 'neutral' && isUp) {
+    stage = 'up';
+    feedback = '✓ Good tilt up! Now look down';
+    status = 'correct';
+    accuracy = 100;
+  } else if (stage === 'up' && isDown) {
+    stage = 'down';
+    reps++;
+    feedback = '✓ Rep counted! Look up again';
+    status = 'correct';
+    accuracy = 100;
+  } else if (stage === 'down' && isUp) {
+    stage = 'up';
+    feedback = '✓ Good! Now look down';
+    status = 'correct';
+    accuracy = 100;
+  } else if (stage === 'neutral') {
+    feedback = 'Tilt head up and down';
+  } else if (stage === 'up' && !isDown && !isNeutral) {
+    feedback = '✗ Tilt head down';
+    status = 'incorrect';
+    accuracy = 70;
+  } else if (stage === 'down' && !isUp && !isNeutral) {
+    feedback = '✗ Tilt head up';
+    status = 'incorrect';
+    accuracy = 70;
+  }
+
+  return { reps, stage, feedback, accuracy, angle: 0, status };
+};
+
 // Exercise detector for Calf Raises
 export const detectCalfRaise = (landmarks, prevState) => {
   const leftKnee = getLandmark(landmarks, POSE_LANDMARKS.LEFT_KNEE);
@@ -453,6 +504,12 @@ export const EXERCISES = {
     name: 'Knee Raise',
     detector: detectKneeRaise,
     description: 'Hip flexor strength - Face camera',
+    category: 'Core & Balance',
+  },
+  neckTilt: {
+    name: 'Neck Tilt',
+    detector: detectNeckTilt,
+    description: 'Neck mobility - Face camera',
     category: 'Core & Balance',
   },
 };
