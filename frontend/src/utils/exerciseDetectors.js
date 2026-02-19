@@ -134,26 +134,166 @@ export const detectShoulderPress = (landmarks, prevState) => {
   return { reps, stage, feedback, accuracy, angle: Math.round(elbowAngle) };
 };
 
+// Exercise detector for Lateral Raise
+export const detectLateralRaise = (landmarks, prevState) => {
+  const leftShoulder = getLandmark(landmarks, POSE_LANDMARKS.LEFT_SHOULDER);
+  const leftElbow = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ELBOW);
+  const leftHip = getLandmark(landmarks, POSE_LANDMARKS.LEFT_HIP);
+
+  const shoulderAngle = calculateAngle(leftHip, leftShoulder, leftElbow);
+  const isRaised = shoulderAngle > 70 && shoulderAngle < 110;
+  const isDown = shoulderAngle < 30;
+
+  let feedback = 'Arms at sides';
+  let reps = prevState?.reps || 0;
+  let stage = prevState?.stage || 'down';
+
+  if (isRaised && stage === 'down') {
+    stage = 'up';
+    feedback = 'Hold! Now lower slowly';
+  } else if (isDown && stage === 'up') {
+    stage = 'down';
+    reps++;
+    feedback = 'Good! Raise again';
+  }
+
+  const accuracy = isRaised || isDown ? 100 : 75;
+  return { reps, stage, feedback, accuracy, angle: Math.round(shoulderAngle) };
+};
+
+// Exercise detector for Lunges
+export const detectLunge = (landmarks, prevState) => {
+  const leftHip = getLandmark(landmarks, POSE_LANDMARKS.LEFT_HIP);
+  const leftKnee = getLandmark(landmarks, POSE_LANDMARKS.LEFT_KNEE);
+  const leftAnkle = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ANKLE);
+
+  const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
+  const isLunged = kneeAngle < 110;
+  const isStanding = kneeAngle > 160;
+
+  let feedback = 'Stand ready';
+  let reps = prevState?.reps || 0;
+  let stage = prevState?.stage || 'up';
+
+  if (isLunged && stage === 'up') {
+    stage = 'down';
+    feedback = 'Good lunge! Return up';
+  } else if (isStanding && stage === 'down') {
+    stage = 'up';
+    reps++;
+    feedback = 'Perfect! Lunge again';
+  }
+
+  const accuracy = isLunged || isStanding ? 100 : 80;
+  return { reps, stage, feedback, accuracy, angle: Math.round(kneeAngle) };
+};
+
+// Exercise detector for Arm Circles
+export const detectArmCircle = (landmarks, prevState) => {
+  const leftShoulder = getLandmark(landmarks, POSE_LANDMARKS.LEFT_SHOULDER);
+  const leftElbow = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ELBOW);
+  const leftWrist = getLandmark(landmarks, POSE_LANDMARKS.LEFT_WRIST);
+
+  const armAngle = calculateAngle(
+    { x: leftShoulder.x, y: leftShoulder.y + 0.2 },
+    leftShoulder,
+    leftWrist
+  );
+
+  const isExtended = armAngle > 150;
+  let reps = prevState?.reps || 0;
+  let stage = prevState?.stage || 'start';
+
+  if (isExtended && leftWrist.y < leftShoulder.y) {
+    if (stage !== 'top') {
+      stage = 'top';
+      reps++;
+    }
+  } else if (leftWrist.y > leftShoulder.y) {
+    stage = 'bottom';
+  }
+
+  const feedback = 'Make slow circles';
+  const accuracy = isExtended ? 100 : 85;
+  return { reps, stage, feedback, accuracy, angle: Math.round(armAngle) };
+};
+
+// Exercise detector for Calf Raises
+export const detectCalfRaise = (landmarks, prevState) => {
+  const leftKnee = getLandmark(landmarks, POSE_LANDMARKS.LEFT_KNEE);
+  const leftAnkle = getLandmark(landmarks, POSE_LANDMARKS.LEFT_ANKLE);
+  const leftHip = getLandmark(landmarks, POSE_LANDMARKS.LEFT_HIP);
+
+  const hipToAnkle = Math.abs(leftHip.y - leftAnkle.y);
+  const isRaised = leftAnkle.y < prevState?.baselineY - 0.02;
+  const isDown = leftAnkle.y >= prevState?.baselineY - 0.01;
+
+  let feedback = 'Stand on toes';
+  let reps = prevState?.reps || 0;
+  let stage = prevState?.stage || 'down';
+  let baselineY = prevState?.baselineY || leftAnkle.y;
+
+  if (isRaised && stage === 'down') {
+    stage = 'up';
+    feedback = 'Hold! Lower heels';
+  } else if (isDown && stage === 'up') {
+    stage = 'down';
+    reps++;
+    feedback = 'Great! Raise again';
+  }
+
+  const accuracy = 90;
+  return { reps, stage, feedback, accuracy, baselineY, angle: 0 };
+};
+
 // Exercise registry
 export const EXERCISES = {
   squat: {
     name: 'Squat',
     detector: detectSquat,
-    description: 'Stand 6-8 feet from camera, full body visible',
+    description: 'Lower body strength - Full body visible',
+    category: 'Lower Body',
+  },
+  lunge: {
+    name: 'Lunge',
+    detector: detectLunge,
+    description: 'Leg strength & balance - Side profile',
+    category: 'Lower Body',
+  },
+  calfRaise: {
+    name: 'Calf Raise',
+    detector: detectCalfRaise,
+    description: 'Ankle mobility - Face camera',
+    category: 'Lower Body',
   },
   bicepCurl: {
     name: 'Bicep Curl',
     detector: detectBicepCurl,
-    description: 'Show your side profile to camera',
-  },
-  kneeRaise: {
-    name: 'Knee Raise',
-    detector: detectKneeRaise,
-    description: 'Face the camera, stand straight',
+    description: 'Arm strength - Side profile',
+    category: 'Upper Body',
   },
   shoulderPress: {
     name: 'Shoulder Press',
     detector: detectShoulderPress,
-    description: 'Show your side profile to camera',
+    description: 'Shoulder strength - Side profile',
+    category: 'Upper Body',
+  },
+  lateralRaise: {
+    name: 'Lateral Raise',
+    detector: detectLateralRaise,
+    description: 'Shoulder mobility - Face camera',
+    category: 'Upper Body',
+  },
+  armCircle: {
+    name: 'Arm Circle',
+    detector: detectArmCircle,
+    description: 'Shoulder flexibility - Face camera',
+    category: 'Upper Body',
+  },
+  kneeRaise: {
+    name: 'Knee Raise',
+    detector: detectKneeRaise,
+    description: 'Hip flexor strength - Face camera',
+    category: 'Core & Balance',
   },
 };
