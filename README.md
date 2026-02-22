@@ -119,17 +119,19 @@ Each exercise has:
 
 ## 📈 Future Enhancements
 
-- [ ] More exercises (lunges, planks, etc.)
+- [ ] Support for more exercises (lunges, planks, etc.)
 - [ ] Custom exercise builder
 - [ ] Progress tracking across sessions
-- [ ] Export session data
+- [ ] Session data export
 - [ ] Multi-user support
-- [ ] Mobile app version
-
-## 📄 License
-
-MIT License - Built for healthcare accessibility
+- [ ] Mobile application version  
 
 ---
 
-**Built with ❤️ for better rehabilitation outcomes**
+## 📄 License
+
+**MIT License** — Built to promote healthcare accessibility  
+
+---
+
+### Built by **Manthan Sharma** for better rehabilitation outcomes
