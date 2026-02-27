@@ -34,39 +34,39 @@ export const StatsPanel = () => {
   const accuracyColor = accuracy >= 80 ? '#00ff9d' : accuracy >= 60 ? '#ff6b35' : '#ff3366';
 
   return (
-    <div className="bg-[#0d1526] border border-[#1c2e50] rounded-2xl p-6 space-y-5 h-full">
+    <div className="bg-[#0d1526] border border-[#1c2e50] rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5 h-full">
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-[#060b14] rounded-xl p-3 text-center border border-[#1c2e50]">
-          <div className="text-3xl font-black text-[#00e5ff]" style={{ fontFamily: "'Syne', sans-serif" }}>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="bg-[#060b14] rounded-xl p-2 sm:p-3 text-center border border-[#1c2e50]">
+          <div className="text-2xl sm:text-3xl font-black text-[#00e5ff]" style={{ fontFamily: "'Syne', sans-serif" }}>
             {reps}
           </div>
-          <div className="text-xs text-[#4a5e80] mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <div className="text-[10px] sm:text-xs text-[#4a5e80] mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             {getRepLabel()}
           </div>
         </div>
 
-        <div className="bg-[#060b14] rounded-xl p-3 text-center border border-[#1c2e50]">
-          <div className="text-3xl font-black" style={{ fontFamily: "'Syne', sans-serif", color: accuracyColor }}>
+        <div className="bg-[#060b14] rounded-xl p-2 sm:p-3 text-center border border-[#1c2e50]">
+          <div className="text-2xl sm:text-3xl font-black" style={{ fontFamily: "'Syne', sans-serif", color: accuracyColor }}>
             {accuracy}%
           </div>
-          <div className="text-xs text-[#4a5e80] mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <div className="text-[10px] sm:text-xs text-[#4a5e80] mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             ACCURACY
           </div>
         </div>
 
-        <div className="bg-[#060b14] rounded-xl p-3 text-center border border-[#1c2e50]">
-          <div className="text-3xl font-black text-[#a78bfa]" style={{ fontFamily: "'Syne', sans-serif" }}>
+        <div className="bg-[#060b14] rounded-xl p-2 sm:p-3 text-center border border-[#1c2e50]">
+          <div className="text-2xl sm:text-3xl font-black text-[#a78bfa]" style={{ fontFamily: "'Syne', sans-serif" }}>
             {isActive ? getSessionDuration() : '0:00'}
           </div>
-          <div className="text-xs text-[#4a5e80] mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <div className="text-[10px] sm:text-xs text-[#4a5e80] mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             TIME
           </div>
         </div>
       </div>
 
       {/* Live feedback */}
-      <div className="bg-[#060b14] border border-[#1c2e50] rounded-xl p-4">
+      <div className="bg-[#060b14] border border-[#1c2e50] rounded-xl p-3 sm:p-4">
         <div className="text-xs font-medium text-[#4a5e80] mb-2 flex items-center gap-2"
           style={{ fontFamily: "'JetBrains Mono', monospace" }}>
           {isActive && (
@@ -74,7 +74,7 @@ export const StatsPanel = () => {
           )}
           LIVE FEEDBACK
         </div>
-        <div className="text-base font-medium text-[#00e5ff]">
+        <div className="text-sm sm:text-base font-medium text-[#00e5ff]">
           {feedback || 'Select an exercise to begin'}
         </div>
       </div>

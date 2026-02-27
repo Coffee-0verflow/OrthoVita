@@ -63,59 +63,59 @@ Be encouraging and specific.`;
   };
 
   return (
-    <div className="mt-8 bg-[#0d1526] border border-[#1c2e50] rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-black text-[#e8f0ff]" style={{ fontFamily: "'Syne', sans-serif" }}>
+    <div className="mt-6 sm:mt-8 bg-[#0d1526] border border-[#1c2e50] rounded-2xl p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl font-black text-[#e8f0ff]" style={{ fontFamily: "'Syne', sans-serif" }}>
           Session Summary
         </h2>
         <span
-          className="text-sm font-bold px-3 py-1 rounded-lg border"
+          className="text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-1 rounded-lg border"
           style={{ color: grade.color, borderColor: `${grade.color}40`, background: `${grade.color}10` }}
         >
           {grade.label}
         </span>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-[#060b14] border border-[#1c2e50] rounded-xl p-4 text-center">
-          <div className="text-xs text-[#4a5e80] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+        <div className="bg-[#060b14] border border-[#1c2e50] rounded-xl p-2 sm:p-4 text-center">
+          <div className="text-[10px] sm:text-xs text-[#4a5e80] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             EXERCISE
           </div>
-          <div className="text-base font-bold text-[#00e5ff]">
+          <div className="text-xs sm:text-base font-bold text-[#00e5ff]">
             {EXERCISES[currentExercise]?.name || '—'}
           </div>
         </div>
-        <div className="bg-[#060b14] border border-[#1c2e50] rounded-xl p-4 text-center">
-          <div className="text-xs text-[#4a5e80] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+        <div className="bg-[#060b14] border border-[#1c2e50] rounded-xl p-2 sm:p-4 text-center">
+          <div className="text-[10px] sm:text-xs text-[#4a5e80] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             TOTAL REPS
           </div>
-          <div className="text-2xl font-black text-[#e8f0ff]" style={{ fontFamily: "'Syne', sans-serif" }}>
+          <div className="text-xl sm:text-2xl font-black text-[#e8f0ff]" style={{ fontFamily: "'Syne', sans-serif" }}>
             {reps}
           </div>
         </div>
-        <div className="bg-[#060b14] border border-[#1c2e50] rounded-xl p-4 text-center">
-          <div className="text-xs text-[#4a5e80] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+        <div className="bg-[#060b14] border border-[#1c2e50] rounded-xl p-2 sm:p-4 text-center">
+          <div className="text-[10px] sm:text-xs text-[#4a5e80] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             AVG ACCURACY
           </div>
-          <div className="text-2xl font-black" style={{ fontFamily: "'Syne', sans-serif", color: grade.color }}>
+          <div className="text-xl sm:text-2xl font-black" style={{ fontFamily: "'Syne', sans-serif", color: grade.color }}>
             {avgAccuracy}%
           </div>
         </div>
       </div>
 
       {/* AI Analysis */}
-      <div className="bg-[#060b14] border border-[#00e5ff]/20 rounded-xl p-4 mb-6">
-        <div className="flex items-center justify-between mb-3">
+      <div className="bg-[#060b14] border border-[#00e5ff]/20 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🤖</span>
-            <span className="text-sm font-bold text-[#00e5ff]" style={{ fontFamily: "'Syne', sans-serif" }}>
+            <span className="text-base sm:text-lg">🤖</span>
+            <span className="text-xs sm:text-sm font-bold text-[#00e5ff]" style={{ fontFamily: "'Syne', sans-serif" }}>
               AI Analysis
             </span>
           </div>
           {!aiAnalysis && !loadingAI && (
             <button
               onClick={getAIAnalysis}
-              className="text-xs px-3 py-1 bg-[#00e5ff] text-[#060b14] rounded-lg font-bold
+              className="text-xs px-2.5 sm:px-3 py-1 bg-[#00e5ff] text-[#060b14] rounded-lg font-bold
                 hover:bg-[#00ccee] transition-all"
             >
               Analyze
@@ -123,30 +123,30 @@ Be encouraging and specific.`;
           )}
         </div>
         {loadingAI && (
-          <div className="flex items-center gap-2 text-[#4a5e80] text-sm">
-            <div className="w-4 h-4 border-2 border-[#1c2e50] border-t-[#00e5ff] rounded-full animate-spin" />
+          <div className="flex items-center gap-2 text-[#4a5e80] text-xs sm:text-sm">
+            <div className="w-3 sm:w-4 h-3 sm:h-4 border-2 border-[#1c2e50] border-t-[#00e5ff] rounded-full animate-spin" />
             Analyzing your performance...
           </div>
         )}
         {aiAnalysis && (
-          <div className="text-sm text-[#c8d8f0] whitespace-pre-wrap leading-relaxed">
+          <div className="text-xs sm:text-sm text-[#c8d8f0] whitespace-pre-wrap leading-relaxed">
             {aiAnalysis}
           </div>
         )}
         {!aiAnalysis && !loadingAI && (
-          <p className="text-sm text-[#4a5e80]">Click "Analyze" for personalized AI recommendations</p>
+          <p className="text-xs sm:text-sm text-[#4a5e80]">Click "Analyze" for personalized AI recommendations</p>
         )}
       </div>
 
       {chartData.length > 1 && (
-        <div className="bg-[#060b14] border border-[#1c2e50] rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-[#00e5ff] mb-4 flex items-center gap-2"
+        <div className="bg-[#060b14] border border-[#1c2e50] rounded-xl p-3 sm:p-5">
+          <h3 className="text-xs sm:text-sm font-semibold text-[#00e5ff] mb-3 sm:mb-4 flex items-center gap-2"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            <span className="w-1 h-4 bg-[#00e5ff] rounded-full" />
+            <span className="w-1 h-3 sm:h-4 bg-[#00e5ff] rounded-full" />
             ACCURACY PER REP
           </h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+          <ResponsiveContainer width="100%" height={180}>
+            <LineChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
               <defs>
                 <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#00e5ff" stopOpacity={0.8} />
@@ -161,15 +161,15 @@ Be encouraging and specific.`;
               <XAxis
                 dataKey="rep"
                 stroke="#2d3f5c"
-                tick={{ fill: '#6b7fa8', fontSize: 12, fontFamily: 'JetBrains Mono' }}
-                label={{ value: 'Rep Number', position: 'insideBottom', offset: -5, fill: '#4a5e80', fontSize: 11, fontFamily: 'JetBrains Mono' }}
+                tick={{ fill: '#6b7fa8', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+                label={{ value: 'Rep Number', position: 'insideBottom', offset: -5, fill: '#4a5e80', fontSize: 10, fontFamily: 'JetBrains Mono' }}
                 axisLine={{ stroke: '#2d3f5c' }}
               />
               <YAxis
                 domain={[0, 100]}
                 stroke="#2d3f5c"
-                tick={{ fill: '#6b7fa8', fontSize: 12, fontFamily: 'JetBrains Mono' }}
-                label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft', fill: '#4a5e80', fontSize: 11, fontFamily: 'JetBrains Mono' }}
+                tick={{ fill: '#6b7fa8', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+                label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft', fill: '#4a5e80', fontSize: 10, fontFamily: 'JetBrains Mono' }}
                 axisLine={{ stroke: '#2d3f5c' }}
               />
               <Tooltip
@@ -179,8 +179,8 @@ Be encouraging and specific.`;
                   borderRadius: 12,
                   color: '#e8f0ff',
                   fontFamily: 'JetBrains Mono',
-                  fontSize: 13,
-                  padding: '8px 12px',
+                  fontSize: 11,
+                  padding: '6px 10px',
                   boxShadow: '0 0 20px rgba(0, 229, 255, 0.2)'
                 }}
                 formatter={(v) => [`${v}%`, 'Accuracy']}
@@ -191,22 +191,22 @@ Be encouraging and specific.`;
                 type="monotone"
                 dataKey="accuracy"
                 stroke="url(#lineGradient)"
-                strokeWidth={3}
-                dot={{ fill: '#00e5ff', r: 4, strokeWidth: 2, stroke: '#060b14' }}
-                activeDot={{ r: 6, fill: '#00ff9d', stroke: '#060b14', strokeWidth: 2 }}
+                strokeWidth={2}
+                dot={{ fill: '#00e5ff', r: 3, strokeWidth: 2, stroke: '#060b14' }}
+                activeDot={{ r: 5, fill: '#00ff9d', stroke: '#060b14', strokeWidth: 2 }}
                 animationDuration={1000}
               />
             </LineChart>
           </ResponsiveContainer>
           
           {/* Legend */}
-          <div className="flex items-center justify-center gap-4 mt-4 text-xs" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#00e5ff]" />
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-3 sm:mt-4 text-[10px] sm:text-xs" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-[#00e5ff]" />
               <span className="text-[#6b7fa8]">Accuracy Trend</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#00ff9d]" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-[#00ff9d]" />
               <span className="text-[#6b7fa8]">Target: 80%+</span>
             </div>
           </div>
