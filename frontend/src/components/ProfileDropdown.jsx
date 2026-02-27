@@ -27,7 +27,7 @@ export function ProfileDropdown({ user, onOpenProfile, onSignOut }) {
       </button>
 
       {isOpen && (
-        <div className="absolute top-12 right-0 w-56 bg-[#0d1526] border border-[#00ff9d]/20 
+        <div className="fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0 w-56 bg-[#0d1526] border border-[#00ff9d]/20 
                         rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden z-50
                         animate-[slideDown_0.2s_ease-out]">
           <div className="p-3 border-b border-white/[0.07]">
