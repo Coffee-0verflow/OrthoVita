@@ -22,6 +22,43 @@ const QUICK_PROMPTS = [
   "How many reps should I do?",
 ];
 
+const PREDEFINED_ANSWERS = {
+  'hi': "Hi! 👋 I'm here to help with your rehabilitation. You can ask me about exercises, injuries, or proper form. What would you like to know?",
+  'hello': "Hello! 👋 I'm your OrthoVita assistant. Ask me about our exercises (Squat, Bicep Curl, Knee Raise, Shoulder Press) or describe your condition.",
+  'hey': "Hey there! 👋 Ready to help with your rehab journey. What can I assist you with today?",
+  'thanks': "You're welcome! 😊 Feel free to ask if you need anything else.",
+  'thank you': "Happy to help! 💪 Keep up the great work with your rehabilitation.",
+  'bye': "Take care! 👋 Remember to stay consistent with your exercises. See you next time!",
+  
+  'squat': "**Squat Exercise:**\n\n• Stand with feet shoulder-width apart\n• Face the camera directly\n• Lower until knees reach ~90° angle\n• Keep back straight, chest up\n\n**Benefits:** Strengthens quads, glutes, and improves knee stability. Great for knee rehab and lower body strength.",
+  'squats': "**Squat Exercise:**\n\n• Stand with feet shoulder-width apart\n• Face the camera directly\n• Lower until knees reach ~90° angle\n• Keep back straight, chest up\n\n**Benefits:** Strengthens quads, glutes, and improves knee stability. Great for knee rehab and lower body strength.",
+  
+  'bicep curl': "**Bicep Curl Exercise:**\n\n• Show side profile to camera\n• Keep elbow stable at your side\n• Curl from extended (~160°) to contracted (~60°)\n• Control the movement both ways\n\n**Benefits:** Strengthens biceps and improves elbow mobility. Ideal for upper arm rehabilitation.",
+  'bicep': "**Bicep Curl Exercise:**\n\n• Show side profile to camera\n• Keep elbow stable at your side\n• Curl from extended (~160°) to contracted (~60°)\n• Control the movement both ways\n\n**Benefits:** Strengthens biceps and improves elbow mobility. Ideal for upper arm rehabilitation.",
+  
+  'knee raise': "**Knee Raise Exercise:**\n\n• Face the camera\n• Stand straight with good posture\n• Raise knee to hip level\n• Hold briefly, then lower with control\n\n**Benefits:** Improves hip flexor strength, balance, and core stability. Great for hip and lower back rehab.",
+  'knee': "**Knee Raise Exercise:**\n\n• Face the camera\n• Stand straight with good posture\n• Raise knee to hip level\n• Hold briefly, then lower with control\n\n**Benefits:** Improves hip flexor strength, balance, and core stability. Great for hip and lower back rehab.",
+  
+  'shoulder press': "**Shoulder Press Exercise:**\n\n• Show side profile to camera\n• Start with hands at shoulder level\n• Press arms fully overhead\n• Lower back down with control\n\n**Benefits:** Strengthens shoulders, improves overhead mobility. Perfect for shoulder injury recovery and upper body strength.",
+  'shoulder': "**Shoulder Press Exercise:**\n\n• Show side profile to camera\n• Start with hands at shoulder level\n• Press arms fully overhead\n• Lower back down with control\n\n**Benefits:** Strengthens shoulders, improves overhead mobility. Perfect for shoulder injury recovery and upper body strength.",
+  
+  'exercises': "We have 4 rehabilitation exercises:\n\n1. **Squat** - Lower body & knee strength\n2. **Bicep Curl** - Arm & elbow mobility\n3. **Knee Raise** - Hip flexors & balance\n4. **Shoulder Press** - Shoulder strength & mobility\n\nWhich one would you like to know more about?",
+  'what exercises': "We have 4 rehabilitation exercises:\n\n1. **Squat** - Lower body & knee strength\n2. **Bicep Curl** - Arm & elbow mobility\n3. **Knee Raise** - Hip flexors & balance\n4. **Shoulder Press** - Shoulder strength & mobility\n\nWhich one would you like to know more about?",
+  
+  'how many reps': "**Recommended Reps:**\n\n• Beginners: 8-10 reps, 2 sets\n• Intermediate: 12-15 reps, 3 sets\n• Advanced: 15-20 reps, 3-4 sets\n\nStart slow and increase gradually. Quality over quantity! Rest 30-60 seconds between sets.",
+  'reps': "**Recommended Reps:**\n\n• Beginners: 8-10 reps, 2 sets\n• Intermediate: 12-15 reps, 3 sets\n• Advanced: 15-20 reps, 3-4 sets\n\nStart slow and increase gradually. Quality over quantity! Rest 30-60 seconds between sets.",
+};
+
+function findPredefinedAnswer(text) {
+  const lower = text.toLowerCase().trim();
+  for (const [key, answer] of Object.entries(PREDEFINED_ANSWERS)) {
+    if (lower === key || lower.includes(key)) {
+      return answer;
+    }
+  }
+  return null;
+}
+
 function TypingDots() {
   return (
     <div className="flex items-center gap-1 px-4 py-3">
@@ -79,6 +116,14 @@ export function GeminiChatbot({ userName }) {
     setError('');
 
     setMessages(prev => [...prev, { role: 'user', text: userText }]);
+    
+    // Check for predefined answer first
+    const predefinedAnswer = findPredefinedAnswer(userText);
+    if (predefinedAnswer) {
+      setMessages(prev => [...prev, { role: 'assistant', text: predefinedAnswer }]);
+      return;
+    }
+
     setLoading(true);
 
     try {
