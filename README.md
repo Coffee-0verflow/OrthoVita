@@ -2,6 +2,10 @@
 
 An AI-based rehabilitation assistant using computer vision and motion tracking to guide patients through exercises, monitor posture accuracy, and provide real-time corrective feedback.
 
+## 🌐 Live Demo
+
+**[Try OrthoVita Live →](https://orthovita.vercel.app)**
+
 ## 🚀 Features
 
 - **Real-time Pose Detection**: Uses MediaPipe for accurate body tracking
@@ -62,10 +66,11 @@ VITE_GEMINI_API_KEY=your-gemini-api-key
 VITE_API_URL=http://localhost:3001
 ```
 
-**Backend (uses frontend/.env):**
+**Backend (.env in backend/):**
 ```env
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/OrthoVita
 JWT_SECRET=your-secret-key
+PORT=3001
 ```
 
 ## 🎯 How to Use
@@ -217,14 +222,17 @@ Each exercise has:
 
 ## 🚀 Deployment
 
-### Backend
-Deploy to Railway, Render, or Heroku
+### Live Application
+- **Frontend**: [https://orthovita.vercel.app](https://orthovita.vercel.app)
+- **Backend**: Deployed on Render
 
-### Frontend
-Deploy to Vercel or Netlify
+### Deploy Your Own
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions.
 
-### MongoDB
-Use MongoDB Atlas (cloud database)
+**Quick Steps:**
+1. **Backend**: Deploy to Render with `MONGODB_URI`, `JWT_SECRET`, `PORT`
+2. **Frontend**: Deploy to Vercel with `VITE_GEMINI_API_KEY`, `VITE_API_URL`
+3. **Database**: Use MongoDB Atlas
 
 ---
 
