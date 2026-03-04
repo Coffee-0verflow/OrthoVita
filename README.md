@@ -227,8 +227,6 @@ Each exercise has:
 - **Backend**: Deployed on Render
 
 ### Deploy Your Own
-See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions.
-
 **Quick Steps:**
 1. **Backend**: Deploy to Render with `MONGODB_URI`, `JWT_SECRET`, `PORT`
 2. **Frontend**: Deploy to Vercel with `VITE_GEMINI_API_KEY`, `VITE_API_URL`
@@ -242,4 +240,4 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions.
 
 ---
 
-### Built by **Manthan Sharma** for better rehabilitation outcomes
+### Built by **Coffee Overflow** for better rehabilitation outcomes
