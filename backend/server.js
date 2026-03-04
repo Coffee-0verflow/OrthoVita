@@ -13,14 +13,6 @@ app.use(express.json());
 
 let db;
 
-// MongoDB Connection
-MongoClient.connect(process.env.MONGODB_URI)
-  .then(client => {
-    db = client.db('OrthoVita');
-    console.log('✅ MongoDB connected');
-  })
-  .catch(err => console.error('❌ MongoDB connection error:', err));
-
 // Auth Middleware
 const authMiddleware = (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
@@ -70,6 +62,10 @@ app.post('/api/auth/signup', async (req, res) => {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Server error during signup' });
   }
+});
+
+app.get('/', (req, res) => {
+  res.send('OrthoVita API is running 🚀');
 });
 
 app.post('/api/auth/login', async (req, res) => {
@@ -192,5 +188,21 @@ app.post('/api/profile', authMiddleware, async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+async function startServer() {
+  try {
+    const client = new MongoClient(process.env.MONGODB_URI);
+    await client.connect();
+    db = client.db('OrthoVita');
+    console.log('✅ MongoDB connected');
+
+    const PORT = process.env.PORT || 3001;
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err);
+  }
+}
+
+startServer();
