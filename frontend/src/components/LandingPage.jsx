@@ -289,12 +289,12 @@ function AuthModal({ mode, onSwitchMode, onClose, onAuth }) {
       } else {
         const result = await signUp(form.name, form.email, form.password);
         if (result.success) {
-          setSuccess('✅ Registration successful! Please sign in to continue.');
+          setSuccess('✅ Registration successful! Redirecting to sign in...');
           setTimeout(() => {
             onSwitchMode('login');
             setForm({ name: '', email: form.email, password: '' });
             setSuccess('');
-          }, 2000);
+          }, 1500);
         } else {
           setError(result.error);
         }
