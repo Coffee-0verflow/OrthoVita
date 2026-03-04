@@ -19,7 +19,7 @@ import { EXERCISES } from './utils/exerciseDetectors';
 import { getRecommendedExercises } from './utils/injuryMapping';
 
 function App() {
-  const { user, setUser, rehabDay, confirmedInjury, setInjury, currentExercise, isActive } = useStore();
+  const { user, setUser, rehabDay, confirmedInjury, setInjury, currentExercise, isActive, loadUserSessions } = useStore();
   const [flow, setFlow] = useState('landing');
   const [showBriefing, setShowBriefing] = useState(false);
   const [showNutrition, setShowNutrition] = useState(false);
@@ -34,7 +34,7 @@ function App() {
       setFlow('landing');
     } else {
       setFlow('dashboard');
-      // Only use fallback mapping if no AI recommendations
+      loadUserSessions();
       if (confirmedInjury && recommendedExercises.length === 0) {
         setRecommendedExercises(getRecommendedExercises(confirmedInjury));
       }

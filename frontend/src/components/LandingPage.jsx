@@ -260,35 +260,50 @@ export function LandingPage({ onAuth }) {
    AUTH MODAL (pure Tailwind)
 ───────────────────────────────── */
 function AuthModal({ mode, onSwitchMode, onClose, onAuth }) {
-  const [form, setForm]       = useState({ name: '', email: '', password: '' });
-  const [error, setError]     = useState('');
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const isLogin               = mode === 'login';
+  const isLogin = mode === 'login';
 
-  function update(field, val) { setForm((f) => ({ ...f, [field]: val })); setError(''); }
+  function update(field, val) { 
+    setForm((f) => ({ ...f, [field]: val })); 
+    setError(''); 
+    setSuccess('');
+  }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
-    setTimeout(() => {
-      let result;
-      
+    try {
       if (isLogin) {
-        result = login(form.email, form.password);
+        const result = await login(form.email, form.password);
+        if (result.success) {
+          onAuth(result.user);
+        } else {
+          setError(result.error);
+        }
       } else {
-        result = signUp(form.name, form.email, form.password);
+        const result = await signUp(form.name, form.email, form.password);
+        if (result.success) {
+          setSuccess('✅ Registration successful! Please sign in to continue.');
+          setTimeout(() => {
+            onSwitchMode('login');
+            setForm({ name: '', email: form.email, password: '' });
+            setSuccess('');
+          }, 2000);
+        } else {
+          setError(result.error);
+        }
       }
-
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-
-      if (result.success) {
-        onAuth(result.user);
-      } else {
-        setError(result.error);
-      }
-    }, 400);
+    }
   }
 
   const inputClass = `w-full bg-white/[0.04] border border-white/[0.09] text-white text-sm
@@ -360,6 +375,13 @@ function AuthModal({ mode, onSwitchMode, onClose, onAuth }) {
               className={inputClass}
             />
           </div>
+
+          {success && (
+            <div className="bg-green-500/10 border border-green-500/25 text-green-400 text-xs
+                            rounded-xl px-4 py-3">
+              {success}
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/25 text-red-400 text-xs
