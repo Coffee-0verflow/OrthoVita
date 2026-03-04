@@ -5,7 +5,7 @@ import { MongoClient, ObjectId } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-dotenv.config({ path: '../frontend/.env' });
+dotenv.config();
 
 const app = express();
 app.use(cors());
