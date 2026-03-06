@@ -19,7 +19,7 @@ import { EXERCISES } from './utils/exerciseDetectors';
 import { getRecommendedExercises } from './utils/injuryMapping';
 
 function App() {
-  const { user, setUser, rehabDay, confirmedInjury, setInjury, currentExercise, isActive, loadUserSessions } = useStore();
+  const { user, setUser, rehabDay, confirmedInjury, setInjury, currentExercise, isActive, loadUserSessions, sessionHistory } = useStore();
   const [flow, setFlow] = useState('landing');
   const [showBriefing, setShowBriefing] = useState(false);
   const [showNutrition, setShowNutrition] = useState(false);
@@ -236,7 +236,8 @@ function App() {
       {showNutrition && (
         <NutritionAdvice
           injury={confirmedInjury}
-          effortLevel="moderate"
+          sessionHistory={sessionHistory}
+          currentExercise={currentExercise}
           onClose={() => setShowNutrition(false)}
         />
       )}
